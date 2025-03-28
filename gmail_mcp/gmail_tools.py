@@ -193,22 +193,18 @@ class GmailService:
             return f"An HttpError occurred: {str(error)}"
 
     # @mcp.tool()
-    async def get_unread_emails(self) -> list[dict[str, str]] | str:
+    async def get_unread_emails(self, max_results: int = 6) -> list[dict[str, str]] | str:
         """
-        Retrieves unread messages from mailbox.
-        Returns list of message IDs in key 'id'."""
+        Retrieves unread messages from mailbox with a limit on the number of emails.
+        Returns list of message IDs in key 'id'.
+        """
         try:
             user_id = 'me'
             query = 'is:unread'
 
-            response = self.service.users().messages().list(userId=user_id, q=query).execute()
+            response = self.service.users().messages().list(userId=user_id, q=query, maxResults=max_results).execute()
             print(f"API Response: {response}")
             messages = response.get('messages', [])
-
-            while 'nextPageToken' in response:
-                page_token = response['nextPageToken']
-                response = self.service.users().messages().list(userId=user_id, q=query, pageToken=page_token).execute()
-                messages.extend(response.get('messages', []))
 
             if not messages:
                 logger.info("No unread emails found.")
